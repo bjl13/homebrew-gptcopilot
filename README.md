@@ -1,12 +1,18 @@
 # Terminal GPT {tgpt}
 <p align="center">
-  <img src="https://raw.githubusercontent.com/bjl13/homebrew-gptcopilot/main/logo-no-background.png" alt="BJL13 Logo" width="350"/>
+  <img src="logo-no-background.png" width="300" alt="BJL13 Logo" />
 </p>
 
-<h3 align="center">🧠 tgpt – A Sysadmin Copilot in Your Terminal</h3>
-
 <p align="center">
-  <code>brew install bjl13/gptcopilot/tgpt</code>
+  <a href="https://github.com/bjl13/homebrew-gptcopilot">
+    <img src="https://img.shields.io/badge/brew%20install-tgpt-810092?logo=homebrew&logoColor=white" alt="Install tgpt" />
+  </a>
+  <a href="https://bjl13.com">
+    <img src="https://img.shields.io/badge/sysadmin-GPT%20copilot-008080?logo=openai&logoColor=white" alt="GPT Copilot" />
+  </a>
+  <a href="https://github.com/bjl13/homebrew-gptcopilot/releases">
+    <img src="https://img.shields.io/badge/version-0.1.0-808000" alt="Version" />
+  </a>
 </p>
 
 <p align="center">
