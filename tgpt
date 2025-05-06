@@ -1,0 +1,112 @@
+#!/bin/bash
+# GPT-powered Sysadmin Copilot REPL
+# Dependencies: curl, jq, bash >=4
+
+API_KEY="${OPENAI_API_KEY}"
+MODEL="gpt-4o-mini"              # Can be gpt-4o, gpt-4, gpt-3.5-turbo
+HISTORY_LOG="/tmp/gpt-repl-$(date +%s).log"
+
+# Check if API key is valid
+check_key() {
+  echo -n "🔐 Verifying API key... "
+  RESPONSE=$(curl -s -H "Authorization: Bearer $API_KEY" https://api.openai.com/v1/models)
+  if echo "$RESPONSE" | jq -e '.data' &>/dev/null; then
+    echo "✅ Key OK"
+  else
+    echo "❌ Invalid API key or quota exceeded"
+    echo "Response: $RESPONSY
+    exit 1
+  fi
+}
+
+# Send command/output to GPT
+query_gpt() {
+  local cmd="$1"
+  local output="$2"
+  
+  JSON=$(jq -n \
+    --arg model "$MODEL" \
+    --arg cmd "$cmd" \
+    --arg out "$output" \
+    '{
+      model: $model,
+      messages: [{
+        role: "user",
+        content: "I just ran this terminal command:\n\n```bash\n\($cmd)\n```\n\nHere is the output:\n\n```\n\($out)\n```\n\nPlease explain what this means, any risks or errors, and suggest what I should do next as a system administrator."
+      }]
+    }')
+
+  echo -n "🧠 GPT Copilot is analyzing... "
+  RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+    -H "Authorization: Bearer $API_KEY" \
+    -H "Content-Type: application/json" \
+    -d "$JSON")
+
+  MESSAGE=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty')
+
+  if [[ -z "$MESSAGE" ]]; then
+    echo "❌ Failed to get a valid response."
+    echo "Raw response was:"
+    echo "$RESPONSE" | jq
+    return 1
+  else
+    echo "✅"
+    echo -e "\n💬 GPT Copilot says:\n$MESSAGE"
+    echo -e "\n---" >> "$HISTORY_LOG"
+    echo -e "CMD: $cmd\nOUTPUT:\n$output\nGPT:\n$MESSAGE\n---" >> "$HISTORY_LOG"
+  fi
+}
+
+# Default values
+MODEL="${MODEL:gpt-4o-mini}"
+HISTORY_LOG="/tmp/gpt-repl-$(date +%s).log"
+VERSION="0.1.0"
+
+# Parse command-line flags
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --model)
+      MODEL="$2"
+      shift 2
+      ;;
+    --log)
+      HISTORY_LOG="$2"
+      shift 2
+      ;;
+    --version)
+      echo "tgpt version $VERSION"
+      exit 0
+      ;;
+    --help|-h)
+      echo "Usage: tgpt [--model gpt-4] [--log /path/to/log] [--version]"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# Main REPL loop
+main_loop() {
+  echo -e "🧠 GPT Sysadmin Copilot REPL — Enter commands as if you're in a shell."
+  echo -e "Type 'exit' or 'quit' to leave.\n"
+
+  while true; do
+    echo -ne "\n🔹 Enter command: "
+    read -r CMD
+
+    [[ "$CMD" == "exit" || "$CMD" == "quit" ]] && echo "Exiting Copilot." && break
+
+    echo -e "\n⚙️  Running: $CMD\n"
+    OUTPUT=$(eval "$CMD" 2>&1)
+    echo "$OUTPUT"
+
+    query_gpt "$CMD" "$OUTPUT"
+  done
+}
+
+# --- Run it ---
+check_key
+main_loop
