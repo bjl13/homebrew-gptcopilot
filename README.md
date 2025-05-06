@@ -1,4 +1,4 @@
-# homebrew-gptcopilot
+# Terminal GPT {tgpt}
 <p align="center">
   <img src="https://raw.githubusercontent.com/bjl13/homebrew-gptcopilot/main/logo-no-background.png" alt="BJL13 Logo" width="350"/>
 </p>
